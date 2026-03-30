@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AN Clinic AI Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --bg:        #080810;
+  --bg2:       #0f0f1c;
+  --bg3:       #161628;
+  --card:      #1a1a2e;
+  --border:    #2a2a45;
+  --text:      #e8e8f4;
+  --text2:     #7878a0;
+  --gold:      #c9a84c;
+  --gold2:     #f0d080;
+  --blue:      #3b6ef8;
+  --blue2:     #2255e0;
+  --blue-glow: rgba(59,110,248,.18);
+  --green:     #10b981;
+  --red:       #ef4444;
+  --radius:    16px;
+  --tr:        all 0.25s ease;
+}
+[data-theme="light"] {
+  --bg:        #f0f4ff;
+  --bg2:       #e6ecf8;
+  --bg3:       #ffffff;
+  --card:      #ffffff;
+  --border:    #ccd4ea;
+  --text:      #0f172a;
+  --text2:     #4a5470;
+  --blue-glow: rgba(59,110,248,.1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  position:relative;
+}
+
+/* Subtle animated bg */
+body::before{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%,rgba(59,110,248,.06) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 35% at 80% 80%,rgba(201,168,76,.05) 0%,transparent 70%);
+}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--blue);}
+
+/* ══ HEADER ══ */
+.chat-header{
+  position:relative;z-index:10;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:12px 14px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  gap:10px;
+}
+.chat-header::after{
+  content:'';
+  position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(59,110,248,.4),var(--gold),rgba(59,110,248,.4),transparent);
+}
+
+.header-left{display:flex;align-items:center;gap:10px;}
+
+.ai-avatar{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1a3aff,#3b6ef8,#c9a84c);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;color:#fff;
+  position:relative;
+  box-shadow:0 0 0 2px rgba(59,110,248,.3),0 0 16px rgba(59,110,248,.2);
+  animation:avatarGlow 3s ease-in-out infinite;
+}
+@keyframes avatarGlow{
+  0%,100%{box-shadow:0 0 0 2px rgba(59,110,248,.3),0 0 12px rgba(59,110,248,.15);}
+  50%{box-shadow:0 0 0 3px rgba(59,110,248,.5),0 0 22px rgba(59,110,248,.35);}
+}
+.online-dot{
+  position:absolute;bottom:1px;right:1px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--green);
+  border:2px solid var(--bg2);
+  animation:blink 2.5s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.85);}}
+
+.header-info{flex:1;min-width:0;}
+.header-name{
+  font-family:'Cinzel',serif;
+  font-size:.82rem;font-weight:600;
+  background:linear-gradient(135deg,var(--text) 40%,var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  letter-spacing:.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.header-status{font-size:.65rem;color:var(--green);margin-top:2px;display:flex;align-items:center;gap:4px;}
+.header-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;}
+
+.header-controls{display:flex;align-items:center;gap:5px;}
+.ctrl-icon-btn{
+  width:32px;height:32px;border-radius:9px;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text2);font-size:.8rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--tr);
+}
+.ctrl-icon-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--blue);}
+.clear-btn{color:var(--red);border-color:rgba(239,68,68,.25);}
+.clear-btn:hover{background:rgba(239,68,68,.08);border-color:var(--red);}
+
+/* open-in-full button */
+.expand-btn{color:var(--gold);border-color:rgba(201,168,76,.25);}
+.expand-btn:hover{background:rgba(201,168,76,.08);border-color:var(--gold);}
+
+/* ══ MESSAGES ══ */
+.chat-messages{
+  flex:1;overflow-y:auto;
+  padding:14px 12px;
+  display:flex;flex-direction:column;gap:10px;
+  scroll-behavior:smooth;
+  position:relative;z-index:2;
+}
+
+.msg-row{display:flex;gap:8px;animation:msgIn .3s ease-out both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg-row.user{justify-content:flex-end;}
+.msg-row.ai{justify-content:flex-start;}
+
+.msg-avatar-sm{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue2),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:#fff;margin-top:2px;
+  box-shadow:0 2px 8px rgba(59,110,248,.3);
+}
+
+.msg-body{max-width:84%;display:flex;flex-direction:column;}
+.msg-row.user .msg-body{align-items:flex-end;}
+
+.msg-bubble{
+  padding:10px 14px;
+  line-height:1.6;
+  font-size:.83rem;
+  word-break:break-word;
+  white-space:pre-wrap;
+  position:relative;
+}
+.msg-row.ai .msg-bubble{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:4px 18px 18px 18px;
+  color:var(--text);
+}
+.msg-row.user .msg-bubble{
+  background:linear-gradient(135deg,var(--blue2),var(--blue));
+  color:#fff;
+  border-radius:18px 4px 18px 18px;
+  box-shadow:0 4px 16px rgba(59,110,248,.35);
+}
+.msg-time{
+  font-size:.6rem;color:var(--text2);
+  margin-top:4px;padding:0 4px;
+}
+
+/* Action button inside message */
+.msg-action-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:10px;padding:7px 14px;
+  border-radius:20px;font-size:.76rem;font-weight:600;
+  cursor:pointer;border:none;transition:var(--tr);
+  text-decoration:none;
+}
+.btn-map{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;}
+.btn-map:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,168,76,.4);}
+.btn-call{background:linear-gradient(135deg,#10b981,#059669);color:#fff;}
+.btn-call:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,185,129,.4);}
+.btn-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;}
+.btn-wa:hover{transform:translateY(-1px);}
+.btn-appt{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;}
+.btn-appt:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(59,110,248,.4);}
+
+/* ── typing dots ── */
+.typing-row{display:flex;gap:8px;align-items:center;animation:msgIn .3s ease-out both;}
+.typing-bubble{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:4px 18px 18px 18px;
+  padding:12px 16px;
+  display:flex;align-items:center;gap:5px;
+}
+.dot-typing{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--blue);opacity:.7;
+  animation:dotBounce 1.3s ease-in-out infinite both;
+}
+.dot-typing:nth-child(1){animation-delay:0s;}
+.dot-typing:nth-child(2){animation-delay:.15s;}
+.dot-typing:nth-child(3){animation-delay:.3s;}
+@keyframes dotBounce{
+  0%,80%,100%{transform:scale(.7);opacity:.4;}
+  40%{transform:scale(1.15);opacity:1;}
+}
+
+/* ── quick chips ── */
+.quick-chips{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-left:36px;
+  animation:msgIn .35s ease-out .1s both;
+}
+.q-chip{
+  padding:6px 13px;border-radius:20px;
+  font-size:.74rem;font-weight:500;cursor:pointer;
+  border:1px solid var(--blue);
+  color:var(--blue);
+  background:rgba(59,110,248,.06);
+  transition:var(--tr);
+  white-space:nowrap;
+}
+.q-chip:hover{background:var(--blue);color:#fff;transform:translateY(-1px);}
+[data-theme="light"] .q-chip{border-color:var(--blue2);color:var(--blue2);}
+
+/* ── date divider ── */
+.date-divider{
+  display:flex;align-items:center;gap:10px;
+  color:var(--text2);font-size:.65rem;
+  text-transform:uppercase;letter-spacing:1px;margin:4px 0;
+}
+.date-divider::before,.date-divider::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* ══ INPUT AREA ══ */
+.chat-input-area{
+  flex-shrink:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:10px 12px 12px;
+  position:relative;z-index:10;
+}
+.disclaimer{
+  font-size:.6rem;color:var(--text2);
+  text-align:center;margin-bottom:8px;
+  opacity:.6;
+}
+.input-row{
+  display:flex;gap:8px;align-items:flex-end;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:14px;padding:6px 6px 6px 12px;
+  transition:var(--tr);
+}
+.input-row:focus-within{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px var(--blue-glow);
+}
+#userInput{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:.84rem;resize:none;max-height:90px;
+  padding:4px 0;line-height:1.5;
+}
+#userInput::placeholder{color:var(--text2);}
+.send-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue2),var(--blue));
+  border:none;color:#fff;font-size:.9rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--tr);flex-shrink:0;
+  box-shadow:0 2px 10px rgba(59,110,248,.35);
+}
+.send-btn:hover:not(:disabled){transform:scale(1.08);box-shadow:0 4px 14px rgba(59,110,248,.5);}
+.send-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
+
+/* ══ WELCOME CARD (shown before any message) ══ */
+.welcome-card{
+  background:linear-gradient(135deg,rgba(59,110,248,.08),rgba(201,168,76,.06));
+  border:1px solid rgba(201,168,76,.18);
+  border-radius:18px;padding:20px 18px;
+  text-align:center;margin:8px 4px;
+  animation:msgIn .5s ease-out both;
+}
+.welcome-icon{
+  font-size:2.4rem;margin-bottom:10px;
+  filter:drop-shadow(0 0 10px rgba(59,110,248,.4));
+}
+.welcome-title{
+  font-family:'Cinzel',serif;font-size:1rem;
+  background:linear-gradient(135deg,var(--text),var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:6px;
+}
+.welcome-sub{font-size:.78rem;color:var(--text2);line-height:1.5;}
+
+/* ══ MAP PREVIEW (inside chat) ══ */
+.map-preview-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  margin-top:8px;width:100%;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.map-preview-card iframe{width:100%;height:160px;border:none;display:block;}
+.map-preview-footer{
+  padding:8px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--border);
+}
+.map-preview-addr{font-size:.72rem;color:var(--text2);flex:1;}
+.map-open-btn{
+  font-size:.72rem;color:var(--gold);
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);
+  padding:4px 10px;border-radius:8px;cursor:pointer;
+  transition:var(--tr);white-space:nowrap;text-decoration:none;
+  display:flex;align-items:center;gap:5px;
+}
+.map-open-btn:hover{background:rgba(201,168,76,.2);}
+
+/* ══ TOAST (inside chat) ══ */
+.chat-toast{
+  position:absolute;bottom:70px;left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--green);color:#fff;
+  padding:7px 16px;border-radius:8px;
+  font-size:.76rem;font-weight:600;
+  opacity:0;transition:all .3s;pointer-events:none;
+  z-index:100;white-space:nowrap;
+}
+.chat-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- HEADER -->
+<div class="chat-header">
+  <div class="header-left">
+    <div class="ai-avatar">
+      🏥
+      <span class="online-dot"></span>
+    </div>
+    <div class="header-info">
+      <div class="header-name">AN Clinic AI Assistant</div>
+      <div class="header-status">Online · Ready to help</div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <button class="ctrl-icon-btn expand-btn" onclick="openFullPage()" title="Full screen mein kholein">
+      <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size:.75rem;"></i>
+    </button>
+    <button class="ctrl-icon-btn" id="themeBtn" onclick="toggleTheme()" title="Theme badlein">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+    <button class="ctrl-icon-btn clear-btn" onclick="clearChat()" title="Clear chat">
+      <i class="fa-solid fa-trash-can" style="font-size:.75rem;"></i>
+    </button>
+  </div>
+</div>
+
+<!-- MESSAGES -->
+<div class="chat-messages" id="chatMessages"></div>
+
+<!-- INPUT -->
+<div class="chat-input-area">
+  <div class="disclaimer">AN Clinic ki jaankari ke liye · Emergency: 108</div>
+  <div class="input-row">
+    <textarea id="userInput" rows="1" placeholder="Kuch bhi puchein — timings, doctors, address..."></textarea>
+    <button class="send-btn" id="sendBtn" disabled onclick="handleSend()">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+<div class="chat-toast" id="chatToast"></div>
+
+<script>
+/* ══════════════════
+   CLINIC DATA
+══════════════════ */
+const CLINIC = {
+  name:    'AN Fractures & Physiotherapist',
+  phone:   '7766953200',
+  hours:   'Mon–Sat: 9 AM – 7 PM  |  Sun: 9 AM – 1 PM',
+  address: 'AN Clinic, Main Road, Bihar',
+  mapSrc:  'https://maps.google.com/maps?q=Bihar,India&output=embed&z=13',
+  dirLink: 'https://maps.google.com/?q=AN+Fractures+Physiotherapist+Bihar',
+  since:   '2010',
+  doctors: [
+    { name:'Dr. Ankit Singh',  qual:'MBBS, MS (Ortho)',  role:'Senior Orthopaedic Surgeon',         exp:'20 yrs', specialties:['Fractures','Joint Replacement','Trauma'] },
+    { name:'Dr. Anurag Yadav', qual:'BPT, MPT',          role:'Senior Physiotherapist',             exp:'12 yrs', specialties:['Sports Rehab','Electrotherapy','Manual Therapy'] },
+    { name:'Dr. AN Singh',     qual:'MBBS, DNB (Ortho)', role:'Pediatric Orthopaedic Specialist',   exp:'9 yrs',  specialties:['Pediatric Ortho','Spine Care','Deformity'] }
+  ],
+  services: ['Fracture Treatment','Physiotherapy','Digital X-Ray','Joint Replacement (Knee, Hip, Shoulder)','Electrotherapy (TENS, Ultrasound, Laser)','Pediatric Orthopaedics','Sports Injury Treatment','Home Visit (elderly/immobile)'],
+  delivery:{ ratePerKm:4.34, cutoff:'6 PM', payMethod:'Cash on Delivery' },
+  stats:   { patients:'5000+', years:'14+', recovery:'98%' }
+};
+
+/* Try to get real contact info from parent page */
+(function(){
+  try {
+    const parent = window.parent;
+    const ph = parent.document.getElementById('ctPhone');
+    if(ph && ph.textContent && ph.textContent !== 'Loading...'){
+      const m = ph.textContent.replace(/\D/g,'');
+      if(m.length >= 10) CLINIC.phone = m.slice(-10);
+    }
+    const ad = parent.document.getElementById('ctAddr');
+    if(ad && ad.textContent && ad.textContent !== 'Loading...') CLINIC.address = ad.textContent;
+    const mf = parent.document.getElementById('mapFrame');
+    if(mf && mf.src && mf.src.length > 10) CLINIC.mapSrc = mf.src;
+    const db = parent.document.getElementById('dirBtn');
+    if(db && db.href && db.href !== '#') CLINIC.dirLink = db.href;
+  } catch(e){}
+})();
+
+/* ══════════════════
+   INTENT ENGINE
+══════════════════ */
+function processMessage(raw) {
+  const text = raw.toLowerCase().trim();
+
+  /* EMERGENCY */
+  if(/emergency|accident|urgent|help me|sos|108|ambulance|khoon|blood/.test(text)){
+    return {
+      text:`⚠️ **EMERGENCY!**\n\nTurant in mein se ek karein:\n• Ambulance: **108** (Free, 24×7)\n• AN Clinic: **+91 ${CLINIC.phone}**\n\nAI sirf jaankari ke liye hai — emergency mein seedha call karein!`,
+      actions:[
+        {type:'call', label:'📞 Emergency Call', href:`tel:+91${CLINIC.phone}`},
+        {type:'call', label:'🚑 Ambulance 108', href:'tel:108'}
+      ]
+    };
+  }
+
+  /* GREETING */
+  if(/^(hi|hello|hey|namaste|namaskar|hii|helo|howdy|salaam|salam|jai hind)[\s!?.]*$/.test(text)){
+    return {
+      text:`Namaste! 🙏 Main **AN Fractures & Physiotherapist** clinic ka AI Assistant hoon.\n\nMain aapko kya jaankari de sakta hoon?`,
+      chips:['📋 Doctor list','⏰ Clinic timings','📍 Address & Map','💊 Medicine delivery','📅 Appointment']
+    };
+  }
+
+  /* THANKS */
+  if(/thank|shukriya|dhanyavad|thx|tysm|acha|theek|done|ok/.test(text)){
+    return {
+      text:`Aapka swaagat hai! 😊\n\nAur koi sawaal ho to bilkul puchein. AN Clinic hamesha aapki seva mein tayaar hai! 🏥`,
+      chips:['📋 Doctor list','⏰ Timings','📍 Address','📅 Appointment']
+    };
+  }
+
+  /* ADDRESS / LOCATION / MAP */
+  if(/address|kahan|location|jagah|where|map|direction|rasta|pahunch|clinic kahan|where is|kidhar/.test(text)){
+    return {
+      text:`📍 **AN Clinic ka Address:**\n\n${CLINIC.address}\n\n⏰ Timings: ${CLINIC.hours}\n📞 Phone: **+91 ${CLINIC.phone}**`,
+      showMap: true,
+      actions:[
+        {type:'map', label:'🗺️ Maps mein Kholein', href: CLINIC.dirLink},
+        {type:'call', label:'📞 Call Karein', href:`tel:+91${CLINIC.phone}`}
+      ]
+    };
+  }
+
+  /* TIMINGS */
+  if(/time|timing|open|close|kab|baje|hour|schedule|sunday|monday|saturday|din|raat|waqt/.test(text)){
+    return {
+      text:`⏰ **AN Clinic Timings:**\n\n📅 ${CLINIC.hours}\n\n📍 Address: ${CLINIC.address}\n📞 Phone: **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call', label:'📞 Call Karein', href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* DOCTORS */
+  if(/doctor|surgeon|physio|dr\.?|specialist|expert|kaun|kis se milun|doctor list|hamare doctor/.test(text)){
+    if(/ankit/.test(text)){
+      const d = CLINIC.doctors[0];
+      return {text:`👨‍⚕️ **${d.name}**\n📋 ${d.qual}\n🏥 ${d.role}\n⏱️ Experience: ${d.exp}\n🎯 Specialties: ${d.specialties.join(', ')}\n\n📅 Appointment ke liye call karein: **+91 ${CLINIC.phone}**`, actions:[{type:'call',label:'📞 Appointment',href:`tel:+91${CLINIC.phone}`}]};
+    }
+    if(/anurag|physio/.test(text)){
+      const d = CLINIC.doctors[1];
+      return {text:`👨‍⚕️ **${d.name}**\n📋 ${d.qual}\n🏥 ${d.role}\n⏱️ Experience: ${d.exp}\n🎯 Specialties: ${d.specialties.join(', ')}\n\n📅 Appointment ke liye call karein: **+91 ${CLINIC.phone}**`, actions:[{type:'call',label:'📞 Appointment',href:`tel:+91${CLINIC.phone}`}]};
+    }
+    if(/an singh|pediatric|bachcha|child/.test(text)){
+      const d = CLINIC.doctors[2];
+      return {text:`👨‍⚕️ **${d.name}**\n📋 ${d.qual}\n🏥 ${d.role}\n⏱️ Experience: ${d.exp}\n🎯 Specialties: ${d.specialties.join(', ')}\n\n📅 Appointment ke liye call karein: **+91 ${CLINIC.phone}**`, actions:[{type:'call',label:'📞 Appointment',href:`tel:+91${CLINIC.phone}`}]};
+    }
+    return {
+      text:`👨‍⚕️ **Hamare Doctors:**\n\n1️⃣ **${CLINIC.doctors[0].name}** — ${CLINIC.doctors[0].role} (${CLINIC.doctors[0].exp})\n   🎯 ${CLINIC.doctors[0].specialties.join(', ')}\n\n2️⃣ **${CLINIC.doctors[1].name}** — ${CLINIC.doctors[1].role} (${CLINIC.doctors[1].exp})\n   🎯 ${CLINIC.doctors[1].specialties.join(', ')}\n\n3️⃣ **${CLINIC.doctors[2].name}** — ${CLINIC.doctors[2].role} (${CLINIC.doctors[2].exp})\n   🎯 ${CLINIC.doctors[2].specialties.join(', ')}\n\n📞 Call: **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Appointment Book Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* SERVICES */
+  if(/service|kya karte|ilaj|treat|suvidha|facility|kya hai|kya milta|available/.test(text)){
+    return {
+      text:`🏥 **AN Clinic ki Services:**\n\n${CLINIC.services.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\n✅ Sab ek hi jagah — ${CLINIC.name}!\n📞 **+91 ${CLINIC.phone}**`,
+      chips:['Fracture','Physiotherapy','Joint Replacement','Medicine Delivery']
+    };
+  }
+
+  /* FRACTURE */
+  if(/fracture|haddi|toot|plaster|cast|bone|haddii|broken/.test(text)){
+    return {
+      text:`🦴 **Fracture Treatment at AN Clinic:**\n\n✅ Expert fracture diagnosis\n✅ In-house Digital X-Ray\n✅ Plaster & Casting\n✅ Surgery (if needed)\n✅ Post-fracture physiotherapy\n\n👨‍⚕️ **Dr. Ankit Singh** (MS Ortho · 20 yrs exp)\n\n📅 Appointment: **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Appointment Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* PHYSIOTHERAPY */
+  if(/physio|exercise|rehab|therapy|dard|pain|joint pain|maalish|massage|spondylitis|back pain|kamar/.test(text)){
+    return {
+      text:`🏃 **Physiotherapy at AN Clinic:**\n\n✅ Advanced rehab exercises\n✅ Manual therapy\n✅ Electrotherapy (TENS, Ultrasound, Laser)\n✅ Sports injury rehab\n✅ Post-surgery recovery\n✅ Back/Neck pain treatment\n\n👨‍⚕️ **Dr. Anurag Yadav** (BPT, MPT · 12 yrs exp)\n\n📞 **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Session Book Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* X-RAY */
+  if(/x.?ray|xray|scan|imaging|radiol/.test(text)){
+    return {
+      text:`📡 **Digital X-Ray at AN Clinic:**\n\n✅ In-house digital radiography\n✅ Instant results\n✅ Accurate bone imaging\n✅ Multiple body parts available\n\n⏰ Timing: **${CLINIC.hours}**\n📞 **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Puchein / Book Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* JOINT REPLACEMENT */
+  if(/joint|knee|hip|shoulder|replacement|arthroplasty|ghutna|kandha/.test(text)){
+    return {
+      text:`🦿 **Joint Replacement at AN Clinic:**\n\n✅ Knee Replacement\n✅ Hip Replacement\n✅ Shoulder Joint Replacement\n✅ High success rate\n\n👨‍⚕️ **Dr. Ankit Singh** (Sr. Orthopaedic Surgeon)\n\n📅 Consultation: **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Consultation Book Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* APPOINTMENT */
+  if(/appointment|book|schedule|milna|visit|aana|buking|appoint/.test(text)){
+    return {
+      text:`📅 **Appointment Kaise Book Karein:**\n\n1️⃣ **Website par:** Neeche scroll karein → "Book Appointment"\n2️⃣ **Call karein:** +91 ${CLINIC.phone}\n3️⃣ **WhatsApp:** +91 ${CLINIC.phone}\n\n⏰ Confirmation within **2 hours!**\n✅ Hum sahi doctor assign karenge aapki problem ke hisaab se.`,
+      actions:[
+        {type:'appt', label:'📅 Website par Book Karein', href:'#appointment', isScroll:true},
+        {type:'call', label:'📞 Call Karein', href:`tel:+91${CLINIC.phone}`},
+        {type:'wa', label:'💬 WhatsApp', href:`https://wa.me/${CLINIC.phone}?text=Hello%2C+appointment+chahiye`}
+      ]
+    };
+  }
+
+  /* MEDICINE DELIVERY */
+  if(/medicine|dawa|dawai|delivery|order|ghar|home deliver|med order/.test(text)){
+    return {
+      text:`💊 **Medicine Home Delivery:**\n\n📦 AN Clinic se ghar tak!\n\n💰 **Delivery Charge:** ₹${CLINIC.delivery.ratePerKm} per km\n💵 **Payment:** Cash on Delivery\n📦 **Order by:** ${CLINIC.delivery.cutoff} for next-day\n\n**Order kaise karein:**\n1. Website pe "Medicine" section mein jaayein\n2. Form bharen (naam, phone, address, doori)\n3. Submit — hum confirm karenge!\n\n📞 **+91 ${CLINIC.phone}**`,
+      actions:[
+        {type:'appt', label:'💊 Order Karein', href:'#medicine', isScroll:true},
+        {type:'call', label:'📞 Call Karein', href:`tel:+91${CLINIC.phone}`}
+      ]
+    };
+  }
+
+  /* DELIVERY CHARGE */
+  if(/charge|kitna|fee|cost|price|rate|paisa|rupee|₹/.test(text)){
+    if(/delivery|med|dawa/.test(text)){
+      return {
+        text:`💰 **Medicine Delivery Charge:**\n\n₹${CLINIC.delivery.ratePerKm} per km se clinic\n\nExample:\n• 2 km → ₹${(2*CLINIC.delivery.ratePerKm).toFixed(2)}\n• 5 km → ₹${(5*CLINIC.delivery.ratePerKm).toFixed(2)}\n• 10 km → ₹${(10*CLINIC.delivery.ratePerKm).toFixed(2)}\n\n💵 Payment: Cash on Delivery\n📞 **+91 ${CLINIC.phone}**`
+      };
+    }
+    return {
+      text:`💰 **AN Clinic Charges ke baare mein:**\n\nSahi charges jaanne ke liye call karein:\n📞 **+91 ${CLINIC.phone}**\n\nSamanya jaankari:\n• Consultation: Call karein\n• Digital X-Ray: Available\n• Physiotherapy: Sessions available\n• Medicine delivery: ₹${CLINIC.delivery.ratePerKm}/km`,
+      actions:[{type:'call',label:'📞 Puchein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* PHONE / CONTACT */
+  if(/phone|contact|number|call|ring|helpline|contact karein/.test(text)){
+    return {
+      text:`📞 **AN Clinic Contact:**\n\n☎️ Phone: **+91 ${CLINIC.phone}**\n💬 WhatsApp: **+91 ${CLINIC.phone}**\n\n⏰ Available: ${CLINIC.hours}\n\n🚑 Emergency: **108** (Ambulance)`,
+      actions:[
+        {type:'call',label:'📞 Call Karein',href:`tel:+91${CLINIC.phone}`},
+        {type:'wa',label:'💬 WhatsApp',href:`https://wa.me/${CLINIC.phone}`}
+      ]
+    };
+  }
+
+  /* WHATSAPP */
+  if(/whatsapp|wa |wa\.?me|chat karna|message karna/.test(text)){
+    return {
+      text:`💬 **WhatsApp par Contact Karein:**\n\n+91 ${CLINIC.phone}\n\n⏰ Available: ${CLINIC.hours}`,
+      actions:[{type:'wa',label:'💬 WhatsApp Kholein',href:`https://wa.me/${CLINIC.phone}?text=Hello+AN+Clinic`}]
+    };
+  }
+
+  /* SPORTS INJURY */
+  if(/sport|athlete|cricket|football|injury|ligament|sprain|khel/.test(text)){
+    return {
+      text:`⚽ **Sports Injury Treatment:**\n\n✅ Ligament injuries\n✅ Muscle strains & sprains\n✅ Stress fractures\n✅ Post-injury rehabilitation\n\n👨‍⚕️ **Dr. Anurag Yadav** (Sports Rehab Specialist)\n\n📞 **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Appointment',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* HOME VISIT */
+  if(/home visit|ghar pe|ghar aa|aana ghar|elderly|budhape|budhe|immobile|bedridden/.test(text)){
+    return {
+      text:`🏠 **Home Visit Service:**\n\nAN Clinic ke doctors aapke ghar aa sakte hain!\n\n✅ Specially for:\n• Elderly patients\n• Immobile/bedridden patients\n• Post-surgery cases\n\n📞 Request ke liye call karein: **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Home Visit Book Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* PEDIATRIC / CHILD */
+  if(/child|bachcha|pediatric|bacche|kids|infant|baby|bache/.test(text)){
+    const d = CLINIC.doctors[2];
+    return {
+      text:`👶 **Pediatric Orthopaedics:**\n\n**${d.name}** (${d.qual})\n🏥 ${d.role}\n⏱️ ${d.exp} experience\n\n🎯 Specialties:\n${d.specialties.map(s=>'• '+s).join('\n')}\n\n📞 Appointment: **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Appointment Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* ABOUT / HISTORY */
+  if(/about|history|story|kaun|kab se|since|founded|establish|clinic ke baare|puraana/.test(text)){
+    return {
+      text:`🏥 **AN Fractures & Physiotherapist Clinic**\n\nEstablished: **${CLINIC.since}** (${CLINIC.stats.years} experience)\n\n✅ NABH Registered\n✅ 24/7 Emergency\n✅ Cashless Insurance\n✅ Digital X-Ray\n✅ In-house Pharmacy\n\n📊 Our Stats:\n• ${CLINIC.stats.patients} patients treated\n• ${CLINIC.stats.recovery} recovery rate\n• 3 expert doctors\n\n📞 **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Contact Karein',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* INSURANCE */
+  if(/insurance|cashless|bima|insure/.test(text)){
+    return {
+      text:`🏦 **Insurance at AN Clinic:**\n\n✅ Cashless insurance facility available\n✅ Most major health insurance accepted\n\nDetail ke liye:\n📞 **+91 ${CLINIC.phone}**`,
+      actions:[{type:'call',label:'📞 Insurance Query',href:`tel:+91${CLINIC.phone}`}]
+    };
+  }
+
+  /* DEFAULT FALLBACK */
+  return {
+    text:`Maaf kijiye, mujhe is sawaal ka sahi jawab nahi pata! 😔\n\nMain AN Clinic ke baare mein yeh jaankari de sakta hoon:`,
+    chips:['📋 Doctor list','⏰ Timings','📍 Address & Map','💊 Medicine','📅 Appointment','📞 Contact']
+  };
+}
+
+/* ══════════════════
+   UI CONTROLLER
+══════════════════ */
+const messagesEl = document.getElementById('chatMessages');
+const inputEl    = document.getElementById('userInput');
+const sendBtn    = document.getElementById('sendBtn');
+let isWaiting = false;
+let isDark = true;
+
+function nowTime(){
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date());
+}
+function scrollBottom(){
+  messagesEl.scrollTo({top:messagesEl.scrollHeight,behavior:'smooth'});
+}
+function escHtml(str){
+  return str
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+}
+
+function buildActionButtons(actions){
+  if(!actions||!actions.length) return '';
+  return actions.map(a=>{
+    if(a.isScroll){
+      return `<a class="msg-action-btn btn-${a.type==='appt'?'appt':'call'}" href="javascript:void(0)" onclick="scrollParentTo('${a.href}')">${a.label}</a>`;
+    }
+    return `<a class="msg-action-btn btn-${a.type==='map'?'map':a.type==='wa'?'wa':a.type==='appt'?'appt':'call'}" href="${a.href}" target="${a.href.startsWith('http')?'_blank':'_self'}">${a.label}</a>`;
+  }).join(' ');
+}
+
+function scrollParentTo(hash){
+  try{
+    window.parent.document.querySelector(hash).scrollIntoView({behavior:'smooth'});
+    // Close AI bubble in parent
+    try{ window.parent.toggleAiChat && window.parent.toggleAiChat(); }catch(e){}
+  }catch(e){
+    window.open(hash,'_parent');
+  }
+}
+
+function buildMapCard(){
+  return `
+    <div class="map-preview-card">
+      <iframe src="${CLINIC.mapSrc}" loading="lazy" allowfullscreen></iframe>
+      <div class="map-preview-footer">
+        <span class="map-preview-addr">📍 ${CLINIC.address}</span>
+        <a class="map-open-btn" href="${CLINIC.dirLink}" target="_blank">
+          <i class="fa-solid fa-diamond-turn-right"></i> Directions
+        </a>
+      </div>
+    </div>`;
+}
+
+function addMessage(resp, sender){
+  const row = document.createElement('div');
+  row.className = `msg-row ${sender}`;
+  const time = nowTime();
+
+  if(sender === 'ai'){
+    const textHtml   = `<div class="msg-bubble">${escHtml(resp.text||resp)}</div>`;
+    const mapHtml    = resp.showMap ? buildMapCard() : '';
+    const actHtml    = resp.actions ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${buildActionButtons(resp.actions)}</div>` : '';
+    row.innerHTML = `
+      <div class="msg-avatar-sm">🏥</div>
+      <div class="msg-body">
+        ${textHtml}
+        ${mapHtml}
+        ${actHtml}
+        <div class="msg-time">${time}</div>
+      </div>`;
+  } else {
+    row.innerHTML = `
+      <div class="msg-body">
+        <div class="msg-bubble">${escHtml(typeof resp === 'string' ? resp : resp.text)}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+  }
+
+  messagesEl.appendChild(row);
+  scrollBottom();
+
+  /* Add quick chips after AI message */
+  if(sender==='ai' && resp.chips && resp.chips.length){
+    setTimeout(()=>showQuickChips(resp.chips), 200);
+  }
+}
+
+function showTyping(){
+  const el = document.createElement('div');
+  el.className = 'typing-row'; el.id = 'typing';
+  el.innerHTML = `
+    <div class="msg-avatar-sm">🏥</div>
+    <div class="typing-bubble">
+      <div class="dot-typing"></div>
+      <div class="dot-typing"></div>
+      <div class="dot-typing"></div>
+    </div>`;
+  messagesEl.appendChild(el);
+  scrollBottom();
+}
+function removeTyping(){
+  const el = document.getElementById('typing');
+  if(el) el.remove();
+}
+
+function showQuickChips(chips){
+  removeChips();
+  const div = document.createElement('div');
+  div.className = 'quick-chips'; div.id = 'quickChips';
+  chips.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className = 'q-chip';
+    btn.textContent = c;
+    btn.onclick = ()=>{ div.remove(); sendMessage(c); };
+    div.appendChild(btn);
+  });
+  messagesEl.appendChild(div);
+  scrollBottom();
+}
+function removeChips(){
+  const el = document.getElementById('quickChips');
+  if(el) el.remove();
+}
+
+async function sendMessage(text){
+  if(!text.trim() || isWaiting) return;
+  removeChips();
+  isWaiting = true;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addMessage(text, 'user');
+  showTyping();
+
+  const delay = 700 + Math.random() * 700;
+  await new Promise(r=>setTimeout(r, delay));
+
+  removeTyping();
+  const reply = processMessage(text);
+  addMessage(reply, 'ai');
+  isWaiting = false;
+}
+
+function handleSend(){ sendMessage(inputEl.value.trim()); }
+
+function clearChat(){
+  if(confirm('Chat clear karein?')){ messagesEl.innerHTML=''; initChat(); }
+}
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.body.setAttribute('data-theme', isDark?'dark':'light');
+  const btn = document.getElementById('themeBtn');
+  btn.innerHTML = isDark ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+}
+
+function openFullPage(){
+  // Open ai.html in new tab or navigate parent to it
+  try{
+    window.open('ai.html','_blank');
+  }catch(e){}
+}
+
+function showChatToast(msg){
+  const el = document.getElementById('chatToast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+/* Auto-resize textarea */
+inputEl.addEventListener('input', function(){
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+  sendBtn.disabled = !this.value.trim();
+});
+inputEl.addEventListener('keydown', function(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); if(!sendBtn.disabled) handleSend(); }
+});
+
+function initChat(){
+  // Welcome card
+  const wc = document.createElement('div');
+  wc.className = 'welcome-card';
+  wc.innerHTML = `
+    <div class="welcome-icon">🏥</div>
+    <div class="welcome-title">AN Clinic Assistant</div>
+    <div class="welcome-sub">Doctors, timings, address, appointment, medicine delivery — sab kuch poochein!</div>`;
+  messagesEl.appendChild(wc);
+
+  setTimeout(()=>{
+    addMessage({
+      text:`Namaste! 🙏 Main **AN Fractures & Physiotherapist** clinic ka AI Assistant hoon.\n\nAap kya jaanna chahte hain?`,
+      chips:['📋 Doctor list','⏰ Clinic timings','📍 Address & Map','💊 Medicine delivery','📅 Appointment','📞 Contact']
+    }, 'ai');
+  }, 300);
+}
+
+window.onload = ()=>{ initChat(); };
+</script>
+</body>
+</html>
