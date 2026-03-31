@@ -127,7 +127,6 @@ body::before{
 .clear-btn{color:var(--red);border-color:rgba(239,68,68,.25);}
 .clear-btn:hover{background:rgba(239,68,68,.08);border-color:var(--red);}
 
-/* open-in-full button */
 .expand-btn{color:var(--gold);border-color:rgba(201,168,76,.25);}
 .expand-btn:hover{background:rgba(201,168,76,.08);border-color:var(--gold);}
 
@@ -289,7 +288,7 @@ body::before{
 .send-btn:hover:not(:disabled){transform:scale(1.08);box-shadow:0 4px 14px rgba(59,110,248,.5);}
 .send-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
 
-/* ══ WELCOME CARD (shown before any message) ══ */
+/* ══ WELCOME CARD ══ */
 .welcome-card{
   background:linear-gradient(135deg,rgba(59,110,248,.08),rgba(201,168,76,.06));
   border:1px solid rgba(201,168,76,.18);
@@ -309,7 +308,7 @@ body::before{
 }
 .welcome-sub{font-size:.78rem;color:var(--text2);line-height:1.5;}
 
-/* ══ MAP PREVIEW (inside chat) ══ */
+/* ══ MAP PREVIEW ══ */
 .map-preview-card{
   background:var(--bg3);border:1px solid var(--border);
   border-radius:12px;overflow:hidden;
@@ -332,7 +331,7 @@ body::before{
 }
 .map-open-btn:hover{background:rgba(201,168,76,.2);}
 
-/* ══ TOAST (inside chat) ══ */
+/* ══ TOAST ══ */
 .chat-toast{
   position:absolute;bottom:70px;left:50%;
   transform:translateX(-50%) translateY(8px);
@@ -343,6 +342,27 @@ body::before{
   z-index:100;white-space:nowrap;
 }
 .chat-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ LANGUAGE SELECTOR ══ */
+.lang-selector{
+  display:flex;gap:6px;
+  margin-left:8px;
+}
+.lang-btn-sm{
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:.65rem;
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text2);
+  cursor:pointer;
+  transition:var(--tr);
+}
+.lang-btn-sm:hover,.lang-btn-sm.active{
+  background:rgba(59,110,248,.15);
+  border-color:var(--blue);
+  color:var(--blue);
+}
 </style>
 </head>
 <body data-theme="dark">
@@ -358,12 +378,16 @@ body::before{
       <div class="header-name">AN Clinic AI Assistant</div>
       <div class="header-status">Online · Ready to help</div>
     </div>
+    <div class="lang-selector">
+      <button class="lang-btn-sm active" onclick="setAiLang('hi')" title="Hindi">हि</button>
+      <button class="lang-btn-sm" onclick="setAiLang('en')" title="English">En</button>
+    </div>
   </div>
   <div class="header-controls">
-    <button class="ctrl-icon-btn expand-btn" onclick="openFullPage()" title="Full screen mein kholein">
+    <button class="ctrl-icon-btn expand-btn" onclick="openFullPage()" title="Full screen">
       <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size:.75rem;"></i>
     </button>
-    <button class="ctrl-icon-btn" id="themeBtn" onclick="toggleTheme()" title="Theme badlein">
+    <button class="ctrl-icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">
       <i class="fa-solid fa-moon"></i>
     </button>
     <button class="ctrl-icon-btn clear-btn" onclick="clearChat()" title="Clear chat">
@@ -388,6 +412,9 @@ body::before{
 
 <div class="chat-toast" id="chatToast"></div>
 
+<!-- Load AI Q&A Database first -->
+<script src="aiq.js"></script>
+
 <script>
 /* ══════════════════
    CLINIC DATA
@@ -400,6 +427,9 @@ const CLINIC = {
   mapSrc:  'https://maps.google.com/maps?q=Bihar,India&output=embed&z=13',
   dirLink: 'https://maps.google.com/?q=AN+Fractures+Physiotherapist+Bihar',
   since:   '2010',
+  years:   '14+',
+  patients:'5000+',
+  recovery:'98%',
   doctors: [
     { name:'Dr. Ankit Singh',  qual:'MBBS, MS (Ortho)',  role:'Senior Orthopaedic Surgeon',         exp:'20 yrs', specialties:['Fractures','Joint Replacement','Trauma'] },
     { name:'Dr. Anurag Yadav', qual:'BPT, MPT',          role:'Senior Physiotherapist',             exp:'12 yrs', specialties:['Sports Rehab','Electrotherapy','Manual Therapy'] },
@@ -429,11 +459,44 @@ const CLINIC = {
 })();
 
 /* ══════════════════
-   INTENT ENGINE
+   AI LANGUAGE SETTING
+══════════════════ */
+let AI_LANG = 'hi';
+
+function setAiLang(lang) {
+  AI_LANG = lang;
+  document.querySelectorAll('.lang-btn-sm').forEach(btn => {
+    btn.classList.toggle('active', 
+      (lang === 'hi' && btn.textContent === 'हि') || 
+      (lang === 'en' && btn.textContent === 'En')
+    );
+  });
+  
+  const input = document.getElementById('userInput');
+  if (lang === 'hi') {
+    input.placeholder = 'Kuch bhi puchein — timings, doctors, address...';
+  } else {
+    input.placeholder = 'Ask anything — timings, doctors, address...';
+  }
+}
+
+/* ══════════════════
+   SMART INTENT ENGINE (using AIQ.js)
 ══════════════════ */
 function processMessage(raw) {
   const text = raw.toLowerCase().trim();
 
+  // Use AIQ Processor if available
+  if (typeof AIQProcessor !== 'undefined') {
+    const response = AIQProcessor.process(text, CLINIC);
+    if (response) return response;
+  }
+
+  // Fallback to built-in processing
+  return processMessageFallback(text);
+}
+
+function processMessageFallback(text) {
   /* EMERGENCY */
   if(/emergency|accident|urgent|help me|sos|108|ambulance|khoon|blood/.test(text)){
     return {
@@ -684,7 +747,6 @@ function buildActionButtons(actions){
 function scrollParentTo(hash){
   try{
     window.parent.document.querySelector(hash).scrollIntoView({behavior:'smooth'});
-    // Close AI bubble in parent
     try{ window.parent.toggleAiChat && window.parent.toggleAiChat(); }catch(e){}
   }catch(e){
     window.open(hash,'_parent');
@@ -732,7 +794,6 @@ function addMessage(resp, sender){
   messagesEl.appendChild(row);
   scrollBottom();
 
-  /* Add quick chips after AI message */
   if(sender==='ai' && resp.chips && resp.chips.length){
     setTimeout(()=>showQuickChips(resp.chips), 200);
   }
@@ -809,7 +870,6 @@ function toggleTheme(){
 }
 
 function openFullPage(){
-  // Open ai.html in new tab or navigate parent to it
   try{
     window.open('ai.html','_blank');
   }catch(e){}

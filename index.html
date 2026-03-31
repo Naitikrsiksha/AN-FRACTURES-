@@ -6,13 +6,11 @@
 <title>AN Fractures &amp; Physiotherapist</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link rel="icon" type="image/png" href="fav.png">
-
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
-  ║  ⚠️  BACKEND NOTE — READ CAREFULLY                          ║
-  ║  Google Sheets ID, UPI ID, Phone, Email — ye sab           ║
+  ║  BACKEND NOTE — READ CAREFULLY                               ║
+  ║  Google Sheets ID, UPI ID, Phone, Email — ye sab            ║
   ║  Google Apps Script Web App (server) mein hain.             ║
   ║  Setup:                                                      ║
   ║  1. Google Apps Script mein apna code deploy karo           ║
@@ -21,6 +19,7 @@
 -->
 <script>
 window.BACKEND_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+window.RATE_PER_KM = 4.34;
 </script>
 <script src="announcement.js" defer></script>
 
@@ -741,6 +740,24 @@ footer p{color:var(--text2);font-size:.82rem;}
 .ambient{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at 50% 20%,rgba(201,168,76,.04) 0%,transparent 65%);}
 [data-theme="light"] .ambient{display:none;}
 
+/* ── FLOAT BUTTONS ── */
+.shop-float{
+  position:fixed;bottom:244px;right:16px;
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,#c9a84c,#f0d080);
+  border:2px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.25rem;color:#000;
+  box-shadow:0 4px 18px rgba(201,168,76,.45);
+  z-index:1200;cursor:pointer;text-decoration:none;
+  animation:shopPulse 2.4s infinite;transition:transform .3s;
+}
+.shop-float:hover{transform:scale(1.1);}
+@keyframes shopPulse{
+  0%,100%{box-shadow:0 4px 18px rgba(201,168,76,.45);}
+  50%{box-shadow:0 4px 28px rgba(201,168,76,.8),0 0 0 8px rgba(201,168,76,.08);}
+}
+
 /* ── AI WIDGET ── */
 .ai-widget{
   position:fixed;z-index:1200;
@@ -772,7 +789,7 @@ footer p{color:var(--text2);font-size:.82rem;}
   50%{box-shadow:0 4px 28px rgba(37,99,235,.8),0 0 0 8px rgba(37,99,235,.1);}
 }
 
-/* AI MODAL OVERLAY — full screen on mobile, large panel on desktop */
+/* AI MODAL OVERLAY */
 .ai-modal-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,.65);
@@ -1006,28 +1023,19 @@ footer p{color:var(--text2);font-size:.82rem;}
       <p class="sec-sub" data-t="gallery_sub">A glimpse of our world-class facility</p>
     </div>
     <div class="slider-container">
-      <div class="slider-track" id="sliderTrack">
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-hospital slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_reception">Reception</h3><p>Warm welcome for every patient</p></div><div class="slide-count" id="slideCount">1 / 9</div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-x-ray slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_xray">X-Ray Room</h3><p>Digital radiography for precise diagnosis</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-person-walking slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_physio">Physio Hall</h3><p>Advanced rehabilitation equipment</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-bed-pulse slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_treatment">Treatment Room</h3><p>Sterile and fully equipped treatment area</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-dumbbell slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_rehab">Rehab Area</h3><p>Recovery and strength training zone</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-stethoscope slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_consult">Consultation</h3><p>Private, comfortable consultation rooms</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-pills slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_pharmacy">Pharmacy</h3><p>In-house pharmacy for convenience</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-microscope slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_lab">Lab</h3><p>In-house diagnostic laboratory</p></div></div>
-        <div class="slide"><div class="slide-bg"><div class="slide-placeholder"><i class="fa-solid fa-building-columns slide-icon"></i></div></div><div class="slide-caption"><h3 data-t="card_front">Clinic Front</h3><p>Easily accessible main entrance</p></div></div>
-      </div>
+      <div class="slider-track" id="sliderTrack"></div>
       <button class="slider-btn slider-prev" onclick="slidePrev()"><i class="fa-solid fa-chevron-left"></i></button>
       <button class="slider-btn slider-next" onclick="slideNext()"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
     <div class="slider-dots" id="sliderDots"></div>
-    <p style="text-align:center;color:var(--text2);font-size:.78rem;margin-top:8px;">
+    <p id="galleryStatus" style="text-align:center;color:var(--text2);font-size:.78rem;margin-top:8px;">
       <span data-t="gallery_hover">Click arrows to browse</span>
     </p>
   </div>
 </section>
 
 <div class="gold-rule"></div>
+
 
 <!-- SERVICES -->
 <section id="services" class="sec">
@@ -1052,7 +1060,7 @@ footer p{color:var(--text2);font-size:.82rem;}
 
 <div class="gold-rule"></div>
 
-<!-- EXPERTS — with image slots -->
+<!-- EXPERTS -->
 <section id="experts" class="sec">
   <div class="sec-inner">
     <div class="sec-head">
@@ -1063,10 +1071,8 @@ footer p{color:var(--text2);font-size:.82rem;}
     <div class="experts-grid">
 
       <div class="expert-card">
-        <!-- Doctor image slot — add src to show photo -->
         <div class="expert-img-slot">
           <i class="fa-solid fa-user-doctor img-icon"></i>
-          <!-- <img src="doctor1.jpg" alt="Dr. Ankit Singh"> -->
         </div>
         <div class="expert-name">Dr. Ankit Singh</div>
         <div class="expert-qual">MBBS, MS (Ortho)<br>Senior Orthopaedic Surgeon · 20 yrs exp.</div>
@@ -1080,7 +1086,6 @@ footer p{color:var(--text2);font-size:.82rem;}
       <div class="expert-card">
         <div class="expert-img-slot">
           <i class="fa-solid fa-user-doctor img-icon"></i>
-          <!-- <img src="doctor2.jpg" alt="Dr. Anurag Yadav"> -->
         </div>
         <div class="expert-name">Dr. Anurag Yadav</div>
         <div class="expert-qual">BPT, MPT<br>Physiotherapist · 12 yrs exp.</div>
@@ -1094,7 +1099,6 @@ footer p{color:var(--text2);font-size:.82rem;}
       <div class="expert-card">
         <div class="expert-img-slot">
           <i class="fa-solid fa-user-doctor img-icon"></i>
-          <!-- <img src="doctor3.jpg" alt="Dr. AN Singh"> -->
         </div>
         <div class="expert-name">Dr. AN Singh</div>
         <div class="expert-qual">MBBS, DNB (Ortho)<br>Pediatric Orthopaedic Specialist · 9 yrs exp.</div>
@@ -1111,7 +1115,7 @@ footer p{color:var(--text2);font-size:.82rem;}
 
 <div class="gold-rule"></div>
 
-<!-- APPOINTMENT — no doctor select -->
+<!-- APPOINTMENT -->
 <section id="appointment" class="sec">
   <div class="sec-inner">
     <div class="sec-head" style="text-align:center;">
@@ -1167,7 +1171,7 @@ footer p{color:var(--text2);font-size:.82rem;}
 
 <div class="gold-rule"></div>
 
-<!-- MEDICINE DELIVERY — km-based charge, image upload, cash only -->
+<!-- MEDICINE DELIVERY -->
 <section id="medicine" class="sec">
   <div class="sec-inner">
     <div class="sec-head" style="text-align:center;">
@@ -1402,9 +1406,10 @@ footer p{color:var(--text2);font-size:.82rem;}
     <a href="#contact" data-t="nav_contact">Contact</a>
   </div>
   <div class="footer-bottom">
-    © 2025 AN Fractures &amp; Physiotherapist Clinic.
+    © 2026 AN Fractures &amp; Physiotherapist Clinic.
     <span data-t="footer_copy">All rights reserved.</span><br>
-    <span data-t="footer_designed">Designed with care for patient experience.</span>
+    <span data-t="footer_designed">Designed with care for patient experience.</span><br>
+    <strong>Every website creation credits goes to Naitik Singh.</strong>
   </div>
 </footer>
 
@@ -1426,6 +1431,11 @@ footer p{color:var(--text2);font-size:.82rem;}
   <i class="fa-solid fa-phone-flip"></i>
 </a>
 <div class="emergency-tooltip" id="emergencyTooltip">Emergency Call</div>
+
+<!-- Medicine Shop Float Button -->
+<a class="shop-float" href="shopping.html" title="Medicine Shop" aria-label="Open Medicine Shop">
+  <i class="fa-solid fa-cart-shopping"></i>
+</a>
 
 <!-- AI Widget Button -->
 <div class="ai-widget" id="aiWidget">
@@ -1509,32 +1519,6 @@ function getISTTimestamp(date = new Date()) {
   return `${ist} IST`;
 }
 
-function applyContactInfo(d) {
-  const ph = document.getElementById('ctPhone');
-  if(ph){ ph.textContent = '+91 '+d.phone; ph.href = 'tel:+91'+d.phone; }
-
-  const waUrl = `https://wa.me/${d.phone.replace(/\s/g,'')}?text=Hello%2C%20I%20need%20an%20appointment.`;
-  const wa = document.getElementById('ctWA');
-  const waF = document.getElementById('waFloat');
-  const emBtn = document.getElementById('emergencyBtn');
-  const emergTooltip = document.getElementById('emergencyTooltip');
-  if(wa){ wa.href = waUrl; }
-  if(waF){ waF.href = waUrl; }
-  if(emBtn){
-    emBtn.href = `tel:+91${d.phone}`;
-    emergTooltip.textContent = `Emergency: +91 ${d.phone}`;
-  }
-
-  const em = document.getElementById('ctEmail');
-  if(em){ em.textContent = d.email; em.href = 'mailto:'+d.email; }
-  const ad = document.getElementById('ctAddr');
-  if(ad){ ad.textContent = d.address; }
-  const mf = document.getElementById('mapFrame');
-  if(mf && d.mapSrc){ mf.src = d.mapSrc; }
-  const db = document.getElementById('dirBtn');
-  if(db && d.dirLink){ db.href = d.dirLink; }
-}
-
 /* DELIVERY CHARGE CALCULATOR */
 function calcDeliveryCharge() {
   const distEl = document.getElementById('medDist');
@@ -1542,7 +1526,7 @@ function calcDeliveryCharge() {
   const val = document.getElementById('distChargeVal');
   const km = parseFloat(distEl.value);
   if(!isNaN(km) && km > 0) {
-    const charge = (km * RATE_PER_KM).toFixed(2);
+    const charge = (km * window.RATE_PER_KM).toFixed(2);
     val.textContent = '₹' + charge;
     box.style.display = 'flex';
   } else {
@@ -1577,7 +1561,6 @@ async function handleImgUpload(input) {
   try {
     const formData = new FormData();
     formData.append('image', file);
-    // ImgBB free API — replace with your API key from imgbb.com
     const apiKey = 'YOUR_IMGBB_API_KEY';
     const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
       method: 'POST',
@@ -1600,31 +1583,89 @@ async function handleImgUpload(input) {
   }
 }
 
-/* SLIDER */
-let sliderIdx = 0;
-const TOTAL_SLIDES = 9;
-let sliderTimer;
 
-function buildDots() {
-  const c = document.getElementById('sliderDots');
-  for(let i=0;i<TOTAL_SLIDES;i++){
-    const d = document.createElement('div');
-    d.className = 'dot' + (i===0?' active':'');
-    d.onclick = () => goSlide(i);
-    c.appendChild(d);
+/* GALLERY SLIDER */
+let sliderIdx = 0;
+let sliderTimer;
+let gallerySlides = [];
+
+const DEFAULT_GALLERY = [
+  { title:'Reception', caption:'Warm welcome for every patient', imageUrl:'', icon:'fa-hospital' },
+  { title:'X-Ray Room', caption:'Digital radiography for precise diagnosis', imageUrl:'', icon:'fa-x-ray' },
+  { title:'Physio Hall', caption:'Advanced rehabilitation equipment', imageUrl:'', icon:'fa-person-walking' },
+  { title:'Treatment Room', caption:'Sterile and fully equipped treatment area', imageUrl:'', icon:'fa-bed-pulse' },
+  { title:'Rehab Area', caption:'Recovery and strength training zone', imageUrl:'', icon:'fa-dumbbell' },
+  { title:'Consultation', caption:'Private, comfortable consultation rooms', imageUrl:'', icon:'fa-stethoscope' },
+  { title:'Pharmacy', caption:'In-house pharmacy for convenience', imageUrl:'', icon:'fa-pills' },
+  { title:'Lab', caption:'In-house diagnostic laboratory', imageUrl:'', icon:'fa-microscope' },
+  { title:'Clinic Front', caption:'Easily accessible main entrance', imageUrl:'', icon:'fa-building-columns' }
+];
+
+async function loadGallery() {
+  const track = document.getElementById('sliderTrack');
+  const dots = document.getElementById('sliderDots');
+  const status = document.getElementById('galleryStatus');
+  if (!track || !dots) return;
+
+  try {
+    const res = await fetch(`${window.BACKEND_URL}?action=getGallery`);
+    const data = await res.json();
+    gallerySlides = Array.isArray(data.gallery) && data.gallery.length ? data.gallery : DEFAULT_GALLERY;
+  } catch (err) {
+    gallerySlides = DEFAULT_GALLERY;
+  }
+
+  renderGallery();
+  if (status) {
+    status.textContent = gallerySlides.length ? 'Browse the latest gallery images from Google Sheets.' : 'No gallery images found yet.';
   }
 }
-function goSlide(n) {
-  sliderIdx = (n+TOTAL_SLIDES)%TOTAL_SLIDES;
-  document.getElementById('sliderTrack').style.transform = `translateX(-${sliderIdx*100}%)`;
-  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===sliderIdx));
-  const sc = document.getElementById('slideCount');
-  if(sc) sc.textContent = `${sliderIdx+1} / ${TOTAL_SLIDES}`;
+
+function renderGallery() {
+  const track = document.getElementById('sliderTrack');
+  const dots = document.getElementById('sliderDots');
+  if (!track || !dots) return;
+
+  track.innerHTML = gallerySlides.map((item, index) => {
+    const img = item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title || 'Gallery image')}" loading="lazy">` : '';
+    const placeholder = item.imageUrl ? '' : `<div class="slide-placeholder"><i class="fa-solid ${escapeHtml(item.icon || 'fa-image')} slide-icon"></i></div>`;
+    return `
+      <div class="slide">
+        <div class="slide-bg">${img || placeholder}</div>
+        <div class="slide-caption">
+          <h3>${escapeHtml(item.title || 'Gallery image')}</h3>
+          <p>${escapeHtml(item.caption || '')}</p>
+        </div>
+        <div class="slide-count">${index + 1} / ${gallerySlides.length}</div>
+      </div>`;
+  }).join('');
+
+  dots.innerHTML = gallerySlides.map((_, index) => `<div class="dot ${index === 0 ? 'active' : ''}" onclick="goSlide(${index})"></div>`).join('');
+  sliderIdx = 0;
+  goSlide(0, false);
+  startTimer();
 }
-function slidePrev(){ resetTimer(); goSlide(sliderIdx-1); }
-function slideNext(){ resetTimer(); goSlide(sliderIdx+1); }
-function startTimer(){ sliderTimer = setInterval(()=>goSlide(sliderIdx+1),4000); }
+
+function goSlide(n, reset = true) {
+  if (!gallerySlides.length) return;
+  sliderIdx = (n + gallerySlides.length) % gallerySlides.length;
+  document.getElementById('sliderTrack').style.transform = `translateX(-${sliderIdx * 100}%)`;
+  document.querySelectorAll('#sliderDots .dot').forEach((d, i) => d.classList.toggle('active', i === sliderIdx));
+  if (reset) resetTimer();
+}
+function slidePrev(){ goSlide(sliderIdx - 1); }
+function slideNext(){ goSlide(sliderIdx + 1); }
+function startTimer(){ clearInterval(sliderTimer); sliderTimer = setInterval(() => goSlide(sliderIdx + 1, false), 4500); }
 function resetTimer(){ clearInterval(sliderTimer); startTimer(); }
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
 
 /* DRAWER */
 function toggleDrawer() {
@@ -1696,7 +1737,7 @@ async function submitMedicineOrder() {
   st.innerHTML = `<span class="status-load"><i class="fa-solid fa-spinner fa-spin"></i> ${t('submitting')}</span>`;
 
   const km = parseFloat(dist) || 0;
-  const charge = km > 0 ? '₹' + (km * RATE_PER_KM).toFixed(2) : 'To be calculated';
+  const charge = km > 0 ? '₹' + (km * window.RATE_PER_KM).toFixed(2) : 'To be calculated';
 
   const payload = {
     action:'medicineOrder', name, phone, address:addr,
@@ -1813,7 +1854,6 @@ function toggleAiChat() {
   const overlay = document.getElementById('aiModalOverlay');
   overlay.classList.toggle('open', aiOpen);
   document.body.style.overflow = aiOpen ? 'hidden' : '';
-  // Update button icon
   const btn = document.getElementById('aiTriggerBtn');
   if(aiOpen){
     btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
@@ -1830,12 +1870,9 @@ function handleModalOverlayClick(e){
   }
 }
 
-// Close AI on Escape key
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape' && aiOpen) toggleAiChat();
 });
-
-/* AI widget drag removed — now uses modal overlay */
 
 /* SMOKE */
 const cv=document.getElementById('smokeCanvas'),cx=cv.getContext('2d');
@@ -1909,7 +1946,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     b.classList.toggle('active', b.getAttribute('data-lang')===window.LANG);
   });
 
-  buildDots(); goSlide(0); startTimer();
+  loadGallery();
   loadBackendInfo();
   loadFeedback();
   loadDashboard();
