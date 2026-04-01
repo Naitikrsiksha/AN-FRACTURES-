@@ -4,51 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Appointment Booking</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        form { display: flex; flex-direction: column; }
-        input { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:disabled { background-color: #ccc; }
-    </style>
-    <script>
-        let lastSubmission = 0;
-        function validateForm(event) {
-            event.preventDefault();
-            let name = document.getElementById('name').value;
-            let phone = document.getElementById('phone').value;
-            if (name.length < 3) {
-                alert('Name must be at least 3 characters long.');
-                return;
-            }
-            if (!/^[0-9]{10}$/.test(phone)) {
-                alert('Phone number must be exactly 10 digits.');
-                return;
-            }
-            let currentTime = Date.now();
-            if (currentTime - lastSubmission < 30000) {
-                alert('Please wait 30 seconds between submissions.');
-                return;
-            }
-            lastSubmission = currentTime;
-            // Simulating form submission process
-            document.getElementById('loading').style.display = 'block';
-            setTimeout(() => {
-                alert('Form submitted successfully!');
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('appointment-form').reset();
-            }, 2000);
-            // Here you would handle integration with Google Sheets and WhatsApp
-        }
-    </script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <h1>Book Your Appointment</h1>
-    <form id="appointment-form" onsubmit="validateForm(event)">
-        <input id="name" type="text" placeholder="Your Name" required />
-        <input id="phone" type="text" placeholder="Your Phone Number" required />
-        <button type="submit">Submit</button>
-        <div id="loading" style="display:none;">Submitting...</div>
-    </form>
+    <div class="container">
+        <h1>Book an Appointment</h1>
+        <form id="appointmentForm">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" name="fullName" required minlength="3" />
+
+            <label for="phone">Phone (10 digits):</label>
+            <input type="text" id="phone" name="phone" required pattern="\d{10}" />
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required />
+
+            <label for="date">Appointment Date:</label>
+            <input type="date" id="date" name="date" required />
+
+            <label for="time">Appointment Time:</label>
+            <input type="time" id="time" name="time" required />
+
+            <label for="department">Select Department:</label>
+            <select id="department" name="department" required>
+                <option value="">--Select--</option>
+                <option value="dermatology">Dermatology</option>
+                <option value="orthopedics">Orthopedics</option>
+                <option value="pediatrics">Pediatrics</option>
+            </select>
+
+            <label for="message">Optional Message:</label>
+            <textarea id="message" name="message"></textarea>
+
+            <button type="submit">Book Appointment</button>
+        </form>
+        <div id="successModal" class="modal hidden">
+            <p>Appointment booked successfully!</p>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('appointmentForm');
+        const successModal = document.getElementById('successModal');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const fullName = formData.get('fullName');
+            const phone = formData.get('phone');
+            const email = formData.get('email');
+            const date = formData.get('date');
+            const time = formData.get('time');
+            const department = formData.get('department');
+            const message = formData.get('message');
+            const timestamp = new Date().toISOString();
+            const jsonData = { fullName, phone, email, date, time, department, message, timestamp };
+
+            // Simulating form submission
+            if (phone.length === 10) {
+                fetch('https://your-google-sheet-api-endpoint', {
+                    method: 'POST',
+                    body: JSON.stringify(jsonData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                showSuccessModal();
+                sendWhatsAppMessage();
+            }
+            localStorage.setItem('lastSubmission', Date.now());
+        });
+
+        function showSuccessModal() {
+            successModal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            successModal.classList.add('hidden');
+        }
+
+        function sendWhatsAppMessage() {
+            const message = encodeURIComponent(`Appointment Details:\nFull Name: ${form.fullName.value}\nPhone: ${form.phone.value}\nEmail: ${form.email.value}\nDate: ${form.date.value}\nTime: ${form.time.value}\nDepartment: ${form.department.value}\nMessage: ${form.message.value}`);
+            const url = `https://wa.me/your-phone-number?text=${message}`;
+            window.open(url);
+        }
+    </script>
 </body>
 </html>
+
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    padding: 20px;
+}
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+button:hover {
+    background: #218838;
+}
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.hidden {
+    display: none;
+}
