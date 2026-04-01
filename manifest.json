@@ -1,0 +1,16 @@
+{
+  "name": "AN Fractures & Physiotherapist",
+  "short_name": "AN Clinic",
+  "description": "Expert Orthopedic Care and Physiotherapy",
+  "start_url": "https://yourdomain.com/index.html",
+  "display": "standalone",
+  "background_color": "#06060a",
+  "theme_color": "#c9a84c",
+  "icons": [
+    {
+      "src": "fav.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
